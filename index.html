@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Trope Matchmaker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #2a0f24;
+      --card-bg: #111827;
+      --accent: #f97316;
+      --accent-soft: rgba(249,115,22,0.2);
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warning: #eab308;
+      --radius-lg: 16px;
+      --radius-sm: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 900px;
+      background: linear-gradient(145deg, #020617, #020617 40%, #030712 80%);
+      border-radius: 24px;
+      padding: 24px 24px 32px;
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      box-shadow:
+        0 25px 50px -20px rgba(0, 0, 0, 0.75),
+        0 0 0 1px rgba(15, 23, 42, 0.8);
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .title-group h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      letter-spacing: 0.03em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--accent-soft);
+      color: var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .title-group p {
+      margin: 4px 0 0;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .pill {
+      font-size: 0.8rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill span {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: var(--accent);
+    }
+
+    .section {
+      margin-bottom: 20px;
+      padding: 16px 18px 18px;
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top left, rgba(148, 163, 184, 0.12), transparent 50%),
+                  radial-gradient(circle at bottom right, rgba(15, 23, 42, 0.8), transparent 55%);
+      border: 1px solid var(--border);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+    }
+
+    .section-helper {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .tropes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px 12px;
+    }
+
+    .trope-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.8);
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease, transform 0.05s ease;
+    }
+
+    .trope-item input {
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .trope-item:hover {
+      border-color: var(--accent-soft);
+      background: rgba(15, 23, 42, 0.95);
+      transform: translateY(-1px);
+    }
+
+    .blurb-input {
+      width: 100%;
+      resize: vertical;
+      min-height: 150px;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .blurb-input::placeholder {
+      color: #6b7280;
+    }
+
+    .blurb-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(249, 115, 22, 0.5);
+    }
+
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      gap: 12px;
+    }
+
+    .error {
+      font-size: 0.82rem;
+      color: var(--danger);
+      min-height: 1.1em;
+    }
+
+    .analyze-btn {
+      padding: 9px 18px;
+      border-radius: 999px;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 500;
+      background: radial-gradient(circle at top left, #f97316, #ea580c);
+      color: #020617;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
+      box-shadow: 0 12px 25px -12px rgba(248, 113, 22, 0.8);
+    }
+
+    .analyze-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+      box-shadow: none;
+    }
+
+    .analyze-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.05);
+      box-shadow: 0 16px 35px -18px rgba(248, 113, 22, 0.9);
+    }
+
+    .analyze-btn:active:not(:disabled) {
+      transform: translateY(0);
+      box-shadow: 0 10px 20px -12px rgba(248, 113, 22, 0.7);
+    }
+
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(15, 23, 42, 0.25);
+      border-top-color: rgba(15, 23, 42, 0.9);
+      animation: spin 0.7s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.75);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 16px;
+    }
+
+    .modal {
+      background: #020617;
+      border-radius: 20px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 20px 20px 22px;
+      box-shadow:
+        0 25px 50px -20px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(15, 23, 42, 0.8);
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .modal-title {
+      margin: 0;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .score-badge {
+      font-size: 0.8rem;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 1);
+      border: 1px solid var(--border);
+      color: var(--muted);
+    }
+
+    .close-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px;
+      border-radius: 999px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .close-btn:hover {
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+    }
+
+    .verdict {
+      margin: 4px 0 10px;
+      font-weight: 600;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .verdict-tag {
+      font-size: 0.75rem;
+      padding: 3px 7px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .verdict-strong {
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.4);
+      background: rgba(22, 163, 74, 0.08);
+    }
+
+    .verdict-maybe {
+      color: var(--warning);
+      border: 1px solid rgba(234, 179, 8, 0.4);
+      background: rgba(202, 138, 4, 0.07);
+    }
+
+    .verdict-low {
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      background: rgba(185, 28, 28, 0.1);
+    }
+
+    .modal-body {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .vector-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.85rem;
+    }
+
+    .vector-table th,
+    .vector-table td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .vector-table th {
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .score-bar {
+      height: 6px;
+      width: 100%;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 1);
+      overflow: hidden;
+    }
+
+    .score-bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #22c55e, #f97316);
+      width: 0%;
+      transition: width 0.4s ease;
+    }
+
+    .modal-footer {
+      margin-top: 10px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 18px 16px 24px;
+      }
+
+      .section {
+        padding: 14px 12px 14px;
+      }
+
+      .tropes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <div class="title-group">
+        <h1>
+          Trope Matchmaker
+          <span class="badge">MVP Demo</span>
+        </h1>
+        <p>Choose your favorite tropes, paste a blurb, and see how well it matches your taste.</p>
+      </div>
+      <div class="pill">
+        <span></span>
+        Text-first, trope-aligned enjoyment prediction
+      </div>
+    </header>
+
+    <!-- Tropes Section -->
+    <section class="section" id="tropes-section">
+      <div class="section-header">
+        <div class="section-title">1 · Choose Your Tropes</div>
+        <div class="section-helper">Select the patterns you love seeing in stories.</div>
+      </div>
+      <div class="tropes-grid" id="tropes-grid">
+        <!-- Populated by JS -->
+      </div>
+      <p class="hint">Tip: Pick 3–7 tropes to get a more personalized match score.</p>
+    </section>
+
+    <!-- Blurb Section -->
+    <section class="section">
+      <div class="section-header">
+        <div class="section-title">2 · Paste a Book Blurb</div>
+        <div class="section-helper">We’ll infer likely tropes and compute alignment.</div>
+      </div>
+      <textarea
+        id="blurb-input"
+        class="blurb-input"
+        placeholder="Paste the book blurb or short description here..."
+      ></textarea>
+      <div class="footer">
+        <div class="error" id="error-msg"></div>
+        <button id="analyze-btn" class="analyze-btn">
+          <span>Run Analysis</span>
+        </button>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-backdrop" id="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          Match Results
+          <span class="score-badge" id="overall-score-label"></span>
+        </h2>
+        <button class="close-btn" id="modal-close" aria-label="Close">&times;</button>
+      </div>
+      <div class="verdict" id="verdict-text"></div>
+      <div class="modal-body">
+        <div id="explanation-text"></div>
+        <table class="vector-table" id="vector-table">
+
+        </table>
+        <p class="hint">
+          Scores are between 0 and 1 and indicate how strongly each trope appears in the blurb conditioned on your preferences.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="close-btn" id="modal-close-footer">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Configuration ---
+
+    //edit this list to match actual trope vocabulary
+    const TROPE_LIST = [
+      "Slow Burn",
+      "Grumpy x Sunshine",
+      "Secret Identity",
+      "Found Family",
+      "Enemies to Lovers",
+      "Forced Proximity",
+      "Academic Rivals",
+      "Heists",
+      "Forbidden Love",
+      "Chosen One",
+      "Love Triangle",
+      "Quest Adventure",
+      "Dark Academia",
+      "Second Chance Romance",
+      "Political Intrigue",
+      "Mentor–Mentee"
+    ];
+
+    //API endpoint  backend should expose
+    const API_ENDPOINT = "/api/analyze"; // change if needed
+
+    const USE_MOCK = true;
+
+    // --- DOM References ---
+
+    const tropesGrid = document.getElementById("tropes-grid");
+    const blurbInput = document.getElementById("blurb-input");
+    const errorMsg = document.getElementById("error-msg");
+    const analyzeBtn = document.getElementById("analyze-btn");
+
+    const modalBackdrop = document.getElementById("modal-backdrop");
+    const modalClose = document.getElementById("modal-close");
+    const modalCloseFooter = document.getElementById("modal-close-footer");
+    const vectorTable = document.getElementById("vector-table");
+    const verdictText = document.getElementById("verdict-text");
+    const explanationText = document.getElementById("explanation-text");
+    const overallScoreLabel = document.getElementById("overall-score-label");
+
+    // --- Initialization ---
+
+    function initTropes() {
+      TROPE_LIST.forEach((trope, idx) => {
+        const label = document.createElement("label");
+        label.className = "trope-item";
+
+        const input = document.createElement("input");
+        input.type = "checkbox";
+        input.value = trope;
+        input.id = "trope-" + idx;
+
+        const span = document.createElement("span");
+        span.textContent = trope;
+
+        label.appendChild(input);
+        label.appendChild(span);
+
+        tropesGrid.appendChild(label);
+      });
+    }
+
+    initTropes();
+
+    // --- Helper functions ---
+
+    function getSelectedTropes() {
+      const checkboxes = tropesGrid.querySelectorAll("input[type='checkbox']");
+      return Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+    }
+
+    function setLoading(isLoading) {
+      if (isLoading) {
+        analyzeBtn.disabled = true;
+        analyzeBtn.innerHTML = '<div class="spinner"></div><span>Analyzing…</span>';
+      } else {
+        analyzeBtn.disabled = false;
+        analyzeBtn.innerHTML = "<span>Run Analysis</span>";
+      }
+    }
+
+    function showError(message) {
+      errorMsg.textContent = message || "";
+    }
+
+    function openModal() {
+      modalBackdrop.style.display = "flex";
+    }
+
+    function closeModal() {
+      modalBackdrop.style.display = "none";
+    }
+
+    function getVerdictFromScore(score) {
+      if (score >= 0.7) {
+        return {
+          text: "You will love this book.",
+          className: "verdict-tag verdict-strong"
+        };
+      } else if (score >= 0.4) {
+        return {
+          text: "You may like this book.",
+          className: "verdict-tag verdict-maybe"
+        };
+      } else {
+        return {
+          text: "This one isn’t for you.",
+          className: "verdict-tag verdict-low"
+        };
+      }
+    }
+
+    function renderResults(overallScore, alignmentVector, selectedTropes) {
+      // Clear previous
+      vectorTable.innerHTML = "";
+
+      // Set header
+      const thead = document.createElement("thead");
+      thead.innerHTML = `
+        <tr>
+          <th>Trope</th>
+          <th>Score</th>
+          <th style="width: 40%;">Alignment</th>
+        </tr>
+      `;
+      vectorTable.appendChild(thead);
+
+      const tbody = document.createElement("tbody");
+
+      const entries = Object.entries(alignmentVector || {});
+
+      entries.sort((a, b) => b[1] - a[1]); // sort by score desc
+
+      entries.forEach(([trope, score]) => {
+        const row = document.createElement("tr");
+
+        const tdName = document.createElement("td");
+        tdName.textContent = trope;
+
+        const tdScore = document.createElement("td");
+        tdScore.textContent = score.toFixed(2);
+
+        const tdBar = document.createElement("td");
+        const bar = document.createElement("div");
+        bar.className = "score-bar";
+        const fill = document.createElement("div");
+        fill.className = "score-bar-fill";
+        fill.style.width = Math.round(score * 100) + "%";
+        bar.appendChild(fill);
+        tdBar.appendChild(bar);
+
+        row.appendChild(tdName);
+        row.appendChild(tdScore);
+        row.appendChild(tdBar);
+
+        tbody.appendChild(row);
+      });
+
+      vectorTable.appendChild(tbody);
+
+      // Verdict
+      const verdict = getVerdictFromScore(overallScore);
+      verdictText.innerHTML = `
+        <span class="${verdict.className}">${verdict.text}</span>
+        <span>Overall match score: ${(overallScore * 100).toFixed(0)}%</span>
+      `;
+
+      // Overall score label
+      overallScoreLabel.textContent = `Score: ${(overallScore * 100).toFixed(0)}%`;
+
+      // highlight most aligned tropes
+      const topAligned = entries
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([trope]) => trope);
+
+      explanationText.innerHTML = `
+        Based on your preferences for <strong>${selectedTropes.join(", ") || "selected tropes"}</strong>,
+        this blurb shows strong alignment with: <strong>${topAligned.join(", ") || "no strong matches"}</strong>.
+      `;
+
+      openModal();
+    }
+
+    // --- Mock function (for UI testing without backend) ---
+
+    function mockAnalyze(blurb, selectedTropes) {
+      // Create fake scores: random but biased slightly by number of tropes
+      const alignment = {};
+      TROPE_LIST.forEach(trope => {
+        const base = Math.random() * 0.4;
+        const bonus = selectedTropes.includes(trope) ? 0.3 + Math.random() * 0.3 : 0;
+        alignment[trope] = Math.min(1, base + bonus);
+      });
+      const overallScore = Math.min(
+        1,
+        selectedTropes.reduce((acc, trope) => acc + (alignment[trope] || 0), 0) /
+          (selectedTropes.length || 1)
+      );
+      return Promise.resolve({ overall_score: overallScore, alignment_vector: alignment });
+    }
+
+    // --- Event handlers ---
+
+    analyzeBtn.addEventListener("click", async () => {
+      showError("");
+
+      const blurb = blurbInput.value.trim();
+      const selectedTropes = getSelectedTropes();
+
+      if (!selectedTropes.length) {
+        showError("Please select at least one trope.");
+        return;
+      }
+      if (!blurb) {
+        showError("Please paste a book blurb to analyze.");
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        let result;
+        if (USE_MOCK) {
+          result = await mockAnalyze(blurb, selectedTropes);
+        } else {
+          const response = await fetch(API_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              blurb: blurb,
+              preferred_tropes: selectedTropes
+            })
+          });
+
+          if (!response.ok) {
+            throw new Error("Server error: " + response.status);
+          }
+
+          result = await response.json();
+        }
+
+        const overallScore = typeof result.overall_score === "number"
+          ? result.overall_score
+          : 0;
+        const alignmentVector = result.alignment_vector || {};
+
+        renderResults(overallScore, alignmentVector, selectedTropes);
+      } catch (err) {
+        console.error(err);
+        showError("There was a problem running the analysis. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    modalClose.addEventListener("click", closeModal);
+    modalCloseFooter.addEventListener("click", closeModal);
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
